@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,6 +7,9 @@ import { Label } from '@/components/ui/label'
 import { Mail, Phone, MapPin, Clock, Send } from 'lucide-react'
 
 const Contact = () => {
+  const [submitted, setSubmitted] = useState(false);
+  const formRef = useRef(null);
+
   const contactInfo = [
     {
       icon: <Mail className="h-6 w-6" />,
@@ -67,44 +71,37 @@ const Contact = () => {
                 </p>
               </CardHeader>
               <CardContent>
-           <form 
-                  name="contact" 
+                <form
+                  ref={formRef}
+                  name="contact"
                   method="POST" 
                   data-netlify="true" 
                   netlify-honeypot="bot-field"
                   action="/"
                   className="space-y-6"
                   onSubmit={(e) => {
-                  e.preventDefault(); // Prevent React from handling the submission
-                  const form = e.target;
-                  const formData = new FormData(form);
-                  fetch("/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: new URLSearchParams(formData).toString(),
-                  })
-                    .then(() => alert("Thank you for your message!"))
-                    .catch((error) => alert(error));
-                }}
-            >
-
-                    {/* Hidden field for Netlify (this is for the React form, not the static one) */}
-                    <input type="hidden" name="form-name" value="contact" />
-                    
-                    {/* Honeypot field for spam protection */}
-                    <div style={{ display: 'none' }}>
-                      <Label htmlFor="bot-field">Don't fill this out if you're human:</Label>
-                      <Input id="bot-field" name="bot-field" />
-                    </div>
-                    {/* ... rest of your form fields ... */}
-                  </form>
-                  
+                    e.preventDefault();
+                    const form = e.target;
+                    const formData = new FormData(form);
+                    fetch("/", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                      body: new URLSearchParams(formData).toString(),
+                    })
+                      .then(() => {
+                        setSubmitted(true);
+                        formRef.current.reset();
+                      })
+                      .catch((error) => alert(error));
+                  }}
+                >
+                  {/* Hidden field for Netlify (this is for the React form, not the static one) */}
+                  <input type="hidden" name="form-name" value="contact" />
                   {/* Honeypot field for spam protection */}
                   <div style={{ display: 'none' }}>
                     <Label htmlFor="bot-field">Don't fill this out if you're human:</Label>
                     <Input id="bot-field" name="bot-field" />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="firstName">First Name *</Label>
@@ -115,22 +112,18 @@ const Contact = () => {
                       <Input id="lastName" name="lastName" placeholder="Your last name" required />
                     </div>
                   </div>
-                  
                   <div>
                     <Label htmlFor="email">Email Address *</Label>
                     <Input id="email" name="email" type="email" placeholder="your.email@company.com" required />
                   </div>
-                  
                   <div>
                     <Label htmlFor="company">Company</Label>
                     <Input id="company" name="company" placeholder="Your company name" />
                   </div>
-                  
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input id="phone" name="phone" type="tel" placeholder="+1 (555) 123-4567" />
                   </div>
-                  
                   <div>
                     <Label htmlFor="service">Service of Interest</Label>
                     <select 
@@ -144,7 +137,6 @@ const Contact = () => {
                       ))}
                     </select>
                   </div>
-                  
                   <div>
                     <Label htmlFor="message">Message *</Label>
                     <Textarea 
@@ -155,12 +147,16 @@ const Contact = () => {
                       required 
                     />
                   </div>
-                  
                   <Button type="submit" size="lg" className="w-full">
                     <Send className="mr-2 h-5 w-5" />
                     Send Message
                   </Button>
-             
+                </form>
+                {submitted && (
+                  <div className="mt-6 p-4 bg-green-100 text-green-800 rounded-lg text-center">
+                    Thank you for your message! I'll get back to you soon.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
